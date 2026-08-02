@@ -10,8 +10,10 @@ store corrupts data under concurrency in TypeScript.
 | `src/database.ts` | A Keyv key/value store of `{ balance: number }` records. Exports `put` / `get`. |
 | `src/accountRepo.ts` | Repository layer. Exports `getBalance` / `setBalance`. |
 | `src/accountService.ts` | Service layer. Exports `getBalance` / `depositFunds` / `withdrawFunds` — deliberately **without a lock**. |
-| `src/scenario.ts` | One run: create account → deposit $100 → two concurrent $75 withdrawals via `Promise.all`. |
-| `test/race.test.ts` | Runs the scenario 10 times and reports each outcome. |
+| `src/accountServiceSafe.ts` | The **fixed** service: same interface, but a per-account async mutex serializes each read-modify-write. |
+| `src/scenario.ts` | One run against a given service: create account → deposit $100 → two concurrent $75 withdrawals via `Promise.all`. |
+| `test/race.test.ts` | Drives the **unlocked** service 10 times and reports each outcome (observe-only). |
+| `test/safe.test.ts` | Drives the **locked** service 10 times and asserts every run is correct. |
 
 ## Run it
 
@@ -58,5 +60,14 @@ any write lands, so **every** run corrupts. The determinism here is a feature
 for teaching — the bug reproduces every time — but the underlying hazard is the
 same one that shows up unpredictably in production systems.
 
-The fix (left as an exercise) is to make the read-modify-write atomic: a
-per-account lock/mutex, a compare-and-set on the store, or a transaction.
+## The fix
+
+`src/accountServiceSafe.ts` makes the read-modify-write atomic with a
+per-account mutex: each account owns a promise chain, and every critical
+section awaits the previous one, so withdrawals on the same account run strictly
+one at a time. Now the first withdrawal commits `$25` before the second reads,
+and the second is correctly rejected. `test/safe.test.ts` confirms all 10 runs
+leave exactly `$25` with a single successful withdrawal.
+
+Other ways to make it atomic: a compare-and-set on the store, or a database
+transaction.

@@ -19,3 +19,5 @@ Create a test file that runs the scenario 10 times, reporting the results of eac
 
 Next: add an alernate version of accountService with a simple lock, so that the overdraft never occurs.
 
+My goal is to turn this into an exercise for the students.
+
