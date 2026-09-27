@@ -1,4 +1,4 @@
-import { BankService, runScenario, ScenarioResult } from '../src/scenario.js'
+import { BankService, runScenario, ScenarioResult } from './scenario'
 
 /**
  * Renders one run's outcome as a single readable line.
@@ -9,7 +9,7 @@ const describeRun = (run: number, result: ScenarioResult): string => {
   return (
     `Run ${String(run).padStart(2)}: ${verdict} ` +
     `final balance $${result.finalBalance} ` +
-    `(${succeeded}/2 withdrawals succeeded)`
+    `(${succeeded} of 2 withdrawals succeeded)`
   )
 }
 
@@ -17,7 +17,7 @@ const describeRun = (run: number, result: ScenarioResult): string => {
  * Runs the scenario `count` times against the given service, each on a fresh
  * account, logging every outcome and returning all results.
  */
-export const runManyScenarios = async (
+export const scenarioMany = async (
   service: BankService,
   count: number,
 ): Promise<readonly ScenarioResult[]> =>

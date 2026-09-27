@@ -1,11 +1,14 @@
-import { getBalance as repoGetBalance, setBalance } from './accountRepo.js'
-import { WithdrawalResult } from './accountService.js'
+import { getBalance as repoGetBalance, setBalance } from './accountRepo'
+import { type WithdrawalResult } from './types'
 
 /**
  * A locked variant of the account service. It exposes the same interface as the
  * unlocked `accountService`, but serializes each account's read-modify-write so
  * concurrent withdrawals can no longer race.
  */
+
+
+
 
 /**
  * The tail of the in-flight operation chain for each account. Holding shared

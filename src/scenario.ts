@@ -1,11 +1,6 @@
-import { WithdrawalResult } from './accountService.js'
-import { setBalance } from './accountRepo.js'
+import { type WithdrawalResult } from './types'
+import { setBalance } from './accountRepo'
 
-/**
- * The account operations the scenario exercises. Both the unlocked service and
- * the locked service satisfy this shape, so the same scenario can drive either
- * one and we can compare their behavior directly.
- */
 export type BankService = {
   getBalance: (accountId: string) => Promise<number>
   depositFunds: (accountId: string, amount: number) => Promise<void>
@@ -34,13 +29,18 @@ const EXPECTED_FINAL_BALANCE = 25
  *   3. fire two concurrent $75 withdrawals via Promise.all
  *   4. report the final balance and whether it matches a correct system
  *
- * With the unlocked service the two withdrawals may both succeed, leaving an
- * impossible balance; with the locked service exactly one succeeds.
+ * Returns the observed outcome of the scenario, including the final balance,
+ * the results of both withdrawals, and whether the outcome was correct.
+ * 
+ * @argument service - The bank service to test.
+ * @argument accountId : string - The ID of the account to use in the scenario 
  */
 export const runScenario = async (
   service: BankService,
   accountId: string,
 ): Promise<ScenarioResult> => {
+
+  // Initialize the account to a known state before running the scenario.
   await setBalance(accountId, 0)
   const initialBalance = await service.getBalance(accountId)
   if (initialBalance !== 0) {
@@ -53,6 +53,8 @@ export const runScenario = async (
     throw new Error(`Expected balance of 100 after deposit, got ${fundedBalance}`)
   }
 
+  // Attempt two concurrent $75 withdrawals. 
+  // In a correct system, one of these withdrawals should succeed and the other should fail.
   const withdrawals = await Promise.all([
     service.withdrawFunds(accountId, 75),
     service.withdrawFunds(accountId, 75),
@@ -64,7 +66,8 @@ export const runScenario = async (
   // A correct system lets exactly one $75 withdrawal succeed against $100 and
   // leaves $25 behind. If both "succeed" the account was overdrawn: the bank
   // paid out $150 while its books only show a single $75 debit.
-  const correct = succeededCount === 1 && finalBalance === EXPECTED_FINAL_BALANCE
+  const isCorrect = succeededCount === 1 && finalBalance === EXPECTED_FINAL_BALANCE
 
-  return { finalBalance, withdrawals, correct }
+  return { finalBalance, withdrawals, correct: isCorrect }
 }
+

@@ -1,5 +1,4 @@
-import { get, put } from './database.js'
-
+import { get, put } from './database'
 /**
  * Repository layer. Translates between the raw {balance} records of the
  * database and the plain balance numbers the service layer works with.

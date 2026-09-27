@@ -1,11 +1,9 @@
-import { getBalance as repoGetBalance, setBalance } from './accountRepo.js'
+import { getBalance as repoGetBalance, setBalance } from './accountRepo'
+import { type WithdrawalResult } from './types'
 
 /**
- * The outcome of an attempted withdrawal.
+ * A simple account service that allows deposits and withdrawals.
  */
-export type WithdrawalResult =
-  | { succeeded: true }
-  | { succeeded: false; reason: string }
 
 /**
  * Returns the current balance of an account.
